@@ -12,7 +12,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   if Vagrant.has_plugin?("vagrant-vbguest")
     # vagrant up する際に勝手にゲストOSのGuest Additionsがアップデートされて
     # 整合性エラーとかの痛い目を見たくないためのおまじない
-
+    # 初回のインストールまで動作しなくなるため、デフォルトはコメント化しておく
+    #
     ## Guest Additionsを自動アップデートする
     #config.vbguest.auto_update = true
     ## Guest Additionsのisoファイルをリモートからダウンロードしない
