@@ -1,0 +1,114 @@
+VAGRANTFILE_API_VERSION = "2"
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+
+  #------------------------------------
+  # VM共通設定
+  #------------------------------------
+
+  # 基本はCentOSでVMを作る
+  # ディストリビューションを変えたいときはVM個別指定で定義すること
+  config.vm.box = "CentOS-7-x86_64-Vagrant-2002_01"
+
+  if Vagrant.has_plugin?("vagrant-vbguest")
+    # vagrant up する際に勝手にゲストOSのGuest Additionsがアップデートされて
+    # 整合性エラーとかの痛い目を見たくないためのおまじない
+
+    # Guest Additionsを自動アップデートする
+    config.vbguest.auto_update = true
+    # Guest Additionsのisoファイルをリモートからダウンロードしない
+    config.vbguest.no_remote = true
+  end
+
+#  config.vm.synced_folder "../Linux_shared", "/vagrant", type:"virtualbox", disabled: true
+  config.vm.synced_folder "../Linux_shared", "/vagrant", type:"virtualbox"
+
+  config.vm.provider "virtualbox" do |vb|
+    vb.gui = true
+    vb.customize [
+      "modifyvm", :id,
+      "--hwvirtex", "on",
+      "--nestedpaging", "on",
+      "--largepages", "on",
+      "--ioapic", "on",
+      "--pae", "on",
+      "--paravirtprovider", "kvm",
+      "--cableconnected1", "on"
+    ]
+  end
+
+#  #------------------------------------
+#  # svnサーバ
+#  #------------------------------------
+#  config.vm.define :svnserver do | target |
+#    # 詳細は、コントローラVMからansibleで設定する
+#    target.vm.network :private_network, ip: "192.168.33.11"
+#
+#    # vagrantから単体でVM生成するときはコメント解除する
+#    target.vm.hostname = "svnserver"
+#    target.vm.provision :ansible_local do | ansible |
+#      ansible.playbook = "ansible/playbook/install_svn.yml"
+#      ansible.inventory_path = "ansible/hosts/vagrant_vm"
+#    end
+#  end
+#
+#  #------------------------------------
+#  # ansibleコントローラ
+#  #------------------------------------
+#  config.vm.define :controller do | target |
+#    target.vm.hostname = "controler"
+#    target.vm.network :private_network, ip: "192.168.33.12"
+#
+#    target.vm.provision :ansible_local do | ansible |
+#      ansible.playbook = "ansible/playbook/init_controller.yml"
+#      ansible.inventory_path = "ansible/hosts/vagrant_vm"
+#    end
+#
+#    # コントローラVMで生成した公開鍵を、ノードVMに配置する
+#    target.vm.provision :shell do | s |
+#      s.inline = "/vagrant/set_key.sh"
+#    end
+#  end
+#
+#  #------------------------------------
+#  # ansibleノード
+#  #------------------------------------
+#  config.vm.define :node01 do | target |
+#    target.vm.network :private_network, ip: "192.168.33.21"
+#
+#    # コントローラVMで生成した公開鍵を、ノードVMに配置する
+#    target.vm.provision :shell do | s |
+#      s.inline = "/vagrant/set_key.sh"
+#    end
+#  end
+#
+#  #------------------------------------
+#  # debian VM
+#  #------------------------------------
+#  config.vm.define :debian01 do | target |
+#    target.vm.box = "debian_stretch64_9.6.0"
+#    target.vm.network :private_network, ip: "192.168.33.22"
+#
+#    target.vm.provision :ansible_local do | ansible |
+#      ansible.playbook = "ansible/install_debian.yml"
+#      ansible.inventory_path = "ansible/hosts/vagrant_vm"
+#      ansible.verbose = "v"
+#    end
+#  end
+
+  #------------------------------------
+  # テスト用VM
+  #------------------------------------
+  config.vm.define :svnserver do | target |
+    # 詳細は、コントローラVMからansibleで設定する
+    target.vm.network :private_network, ip: "192.168.33.23"
+
+    # vagrantから単体でVM生成するときはコメント解除する
+    target.vm.hostname = "svnserver"
+    target.vm.provision :ansible_local do | ansible |
+      ansible.playbook = "ansible/playbook/install_svn.yml"
+      ansible.inventory_path = "ansible/hosts/vagrant_vm"
+    end
+  end
+
+
+end
