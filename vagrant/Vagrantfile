@@ -13,10 +13,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # vagrant up する際に勝手にゲストOSのGuest Additionsがアップデートされて
     # 整合性エラーとかの痛い目を見たくないためのおまじない
 
-    # Guest Additionsを自動アップデートする
-    config.vbguest.auto_update = true
-    # Guest Additionsのisoファイルをリモートからダウンロードしない
-    config.vbguest.no_remote = true
+    ## Guest Additionsを自動アップデートする
+    #config.vbguest.auto_update = true
+    ## Guest Additionsのisoファイルをリモートからダウンロードしない
+    #config.vbguest.no_remote = true
   end
 
 #  config.vm.synced_folder "../Linux_shared", "/vagrant", type:"virtualbox", disabled: true
@@ -98,16 +98,16 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   #------------------------------------
   # テスト用VM
   #------------------------------------
-  config.vm.define :svnserver do | target |
+  config.vm.define :testvm do | target |
     # 詳細は、コントローラVMからansibleで設定する
     target.vm.network :private_network, ip: "192.168.33.23"
 
-    # vagrantから単体でVM生成するときはコメント解除する
-    target.vm.hostname = "svnserver"
-    target.vm.provision :ansible_local do | ansible |
-      ansible.playbook = "ansible/playbook/install_svn.yml"
-      ansible.inventory_path = "ansible/hosts/vagrant_vm"
-    end
+    ## vagrantから単体でVM生成するときはコメント解除する
+    #target.vm.hostname = "testvm"
+    #target.vm.provision :ansible_local do | ansible |
+    #  ansible.playbook = "ansible/playbook/install_svn.yml"
+    #  ansible.inventory_path = "ansible/hosts/vagrant_vm"
+    #end
   end
 
 
