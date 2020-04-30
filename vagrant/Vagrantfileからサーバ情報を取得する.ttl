@@ -1,0 +1,99 @@
+call GetSrvInfo
+exit
+
+;------------------------------------------------------------------------------
+; Vagrantfileからサーバ情報を取得する
+;   O:VmName   VM名
+;   O:IpAddr   IPアドレス
+;------------------------------------------------------------------------------
+:GetSrvInfo
+	FileName='Vagrantfile'
+	filestat FileName size
+
+	if result = -1 then
+		Message=FileName
+		strconcat Message 'のあるフォルダで実行してください'
+		messagebox Message 'サーバ情報取得NG'
+		return
+	endif
+
+	fileopen fh FileName 0 1
+
+	while 1
+		filereadln fh line
+		if result = 1 then
+			break
+		endif
+
+		strtrim line ' '	; 先頭・末尾のブランクを取り除く
+		strcopy line 1 1 substr	; 先頭1文字目を取り出す
+
+		; コメント行かチェックする
+		strcompare substr '#'
+		if result = 0 then
+			continue
+		endif
+
+		; キーワードを取り出す
+		call GetWord
+		if result = 0 then
+		endif
+
+		;---------------------------------
+		; VM名の定義行からVM名を取り出す
+		;---------------------------------
+		strcompare GotWord 'config.vm.define'
+		if result = 0 then
+			call GetWord
+			VmName = GotWord
+			strremove VmName 1 1
+			continue
+		endif
+
+		;---------------------------
+		; プライベートIPを取り出す
+		;---------------------------
+		strsplit GotWord '.'
+		strcompare groupmatchstr2 "vm"
+		if result = 0 then
+
+			strcompare groupmatchstr3 "network"
+			if result = 0 then
+
+				call GetWord
+				strcompare GotWord ':private_network,'
+				if result = 0 then
+
+					call GetWord
+					strcompare GotWord 'ip:'
+					if result = 0 then
+
+						IpAddr = line
+						strtrim IpAddr '"'
+						continue
+					endif
+				endif
+			endif
+		endif
+	endwhile
+
+	fileclose fh
+
+return
+
+;------------------------------------------------------------------------------
+; 行から文字列を１つ取り出す
+;   I:line     行
+;   O:GotWord  取り出した文字列
+;   O:line     文字列を取り出した残り(先頭のブランクは削除した状態)
+;   O:result   lineの文字列長
+;------------------------------------------------------------------------------
+:GetWord
+	strsplit line ' ' 2
+	GotWord = groupmatchstr1
+	line = groupmatchstr2
+	strtrim line ' '
+	strlen line
+return
+
+; EOF

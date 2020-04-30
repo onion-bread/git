@@ -1,0 +1,161 @@
+call Login
+exit
+
+;------------------------------------------------------------------------------
+; ログインする
+;   I:TITLES  ウインドウタイトル
+;   I:SERVER  ログイン先
+;   I:SRVNAME Vagrantfileで定義したサーバ名
+;   I:ROOT_FLAG rootの昇格実施有無(1:root昇格あり、0:root昇格無し)
+;------------------------------------------------------------------------------
+:Login
+    ; ログインアカウント
+    USER='vagrant'
+    ;call ReadPasswordFile
+    PASSWORD='vagrant'
+
+    ;-------------------
+    ; サーバに接続する
+    ;-------------------
+
+    CMDLINE = SERVER
+    strconcat CMDLINE ':22'
+
+    strconcat CMDLINE ' /KR='
+    strconcat CMDLINE LANG
+
+    strconcat CMDLINE ' /KT='
+    strconcat CMDLINE LANG
+
+    strconcat CMDLINE ' /ssh'
+
+    strconcat CMDLINE ' /W='
+    strconcat CMDLINE TITLE
+
+    strconcat CMDLINE ' /auth=publickey'
+    ;strconcat CMDLINE ' /auth=password'
+
+    strconcat CMDLINE ' /user='
+    strconcat CMDLINE USER
+
+    strconcat CMDLINE ' /passwd='
+    strconcat CMDLINE PASSWORD
+
+    getdir PWD
+    KEY = ' /keyfile="'
+    strconcat KEY PWD
+    strconcat KEY '\.vagrant\machines\'
+    strconcat KEY SRVNAME
+    strconcat KEY '\virtualbox\private_key'
+    strconcat CMDLINE KEY
+
+    ;messagebox CMDLINE '接続'
+
+    connect CMDLINE
+    if result <> 2 then
+        messagebox 'サーバとの接続に失敗しました' '接続不可'
+        end
+    endif
+    wait '$'
+    enablekeyb 0
+
+    ; rootに昇格する
+    if ROOT_FLAG > 0 then
+        call ChangeRoot
+        if RETURN_CODE <> 0 then
+            messagebox 'rootの昇格に失敗しました' 'su失敗'
+        endif
+    endif
+
+    ; 文字コードを識別する
+    call SetLang
+
+    enablekeyb 1
+    unlink
+return
+
+;------------------------------------------------------------------------------
+; パスワードファイルを読み込む
+;   I:USER     アカウント
+;   O:PASSWORD 読み込んだパスワード
+;------------------------------------------------------------------------------
+:ReadPasswordFile
+; パスワードファイル
+    expandenv FILE "%TEMP%\teraterm_password_"
+    strconcat FILE SERVER
+    strconcat FILE '.dat'
+
+    getpassword FILE USER PASSWORD
+return
+
+
+;------------------------------------------------------------------------------
+; 文字コードを識別する
+;
+;   I:無し
+;   O:無し
+;------------------------------------------------------------------------------
+:SetLang
+    flushrecv
+    sendln 'echo $LANG' 
+
+    wait 'ja_JP.UTF-8' 'ja_JP.utf8' 'ja_JP.eucJP' 'ja_JP.SJIS' 'en_US'
+    if result = 1 | result = 2 then 
+        ; UTF8 
+        callmenu 54013  ; [KanjiCode] Recv: UTF-8 
+        callmenu 54113  ; [KanjiCode] Send: UTF-8 
+    elseif result = 3 then 
+        ; EUC 
+        callmenu 54011  ; [KanjiCode] Recv: EUC-JP 
+        callmenu 54111  ; [KanjiCode] Send: EUC-JP 
+    elseif result = 4 then 
+        ; SJIS 
+        callmenu 54010  ; [KanjiCode] Recv: Shift_JIS 
+        callmenu 54110  ; [KanjiCode] Send: Shift_JIS 
+    endif
+return
+
+
+;------------------------------------------------------------------------------
+; sudo su で root に昇格する
+;
+;   I:無し
+;   O:RETURN_CODE   :実行結果
+;                   :  0:コマンド実行OK
+;                   :  1:コマンドタイムアウト
+;------------------------------------------------------------------------------
+:ChangeRoot
+    RETURN_CODE = 0
+    flushrecv
+    sendln 'exec sudo su'
+
+    while 1
+        timeout = 5
+        wait '#' '(y or n)?' '[sudo] password for' 'assword:' 'パスワード:'
+
+        if result = 1 then
+            break
+
+        ; yes/noを聞かれたらyを入力する
+        elseif result = 2 then
+            sendln 'y'
+
+        ; パスワードを聞かれたら入力する
+        elseif result >= 2 then
+            USER='root'
+            call ReadPasswordFile
+            sendln PASSWORD
+
+        ; タイムアウトしたらCtrl+c で処理中止する
+        else
+            RETURN_CODE = 1
+            send #$03           ; Ctrl+c
+        endif
+    endwhile
+
+    sendln 'cd'
+    wait '#'
+
+return
+
+; EOF
