@@ -7,7 +7,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   # 基本はCentOSでVMを作る
   # ディストリビューションを変えたいときはVM個別指定で定義すること
-  config.vm.box = "CentOS-7-x86_64-Vagrant-2002_01"
+  config.vm.box = "CentOS-7-x86_64-Vagrant-2020_01"
 
   if Vagrant.has_plugin?("vagrant-vbguest")
     # vagrant up する際に勝手にゲストOSのGuest Additionsがアップデートされて
