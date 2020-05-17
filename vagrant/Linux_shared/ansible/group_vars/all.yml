@@ -1,0 +1,5 @@
+---
+lang: ja_JP.UTF-8
+keymap: jp106
+timezone: Asia/Tokyo
+distribution: '{{ hostvars[inventory_hostname].ansible_distribution }}'

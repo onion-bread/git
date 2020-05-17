@@ -1,0 +1,51 @@
+---
+#----------------------------------------------------------------------------
+# ホスト名を設定する
+#----------------------------------------------------------------------------
+- name: set hostname
+  hostname:
+    name: '{{ inventory_hostname }}'
+
+- name: make /etc/hosts
+  template:
+    src=../template/etc/hosts.j2
+    dest=/etc/hosts
+
+#----------------------------------------------------------------------------
+# パッケージを最新化する
+#----------------------------------------------------------------------------
+- include: '{{ distribution }}/updatePackakge.yml'
+
+#----------------------------------------------------------------------------
+# 設定ファイルを配置する
+#----------------------------------------------------------------------------
+- include: copy.yml
+  with_items:
+    - { src: '{{ playbook_dir}}/files/.bashrc', dest: '/root/.bashrc', owner: 'root', group: 'root', mode: '0644' }
+    - { src: '{{ playbook_dir}}/files/.bashrc', dest: '/home/vagrant/.bashrc', owner: 'vagrant', group: 'vagrant', mode: '0644' }
+
+#----------------------------------------------------------------------------
+# ロケールを設定する
+#----------------------------------------------------------------------------
+- include: '{{ distribution }}/setLocale.yml'
+
+#----------------------------------------------------------------------------
+# タイムゾーンを設定する
+#----------------------------------------------------------------------------
+- name: set timezone
+  timezone:
+    name: '{{ timezone }}'
+
+#----------------------------------------------------------------------------
+# emacsをインストールする
+#----------------------------------------------------------------------------
+- include: '{{ distribution }}/installPackage.yml'
+  with_items:
+    - emacs
+
+- include: copy.yml
+  with_items:
+    - { src: '{{ playbook_dir}}/files/.emacs' , dest: '/root/.emacs' , owner: 'root', group: 'root', mode: '0644' }
+    - { src: '{{ playbook_dir}}/files/.emacs' , dest: '/home/vagrant/.emacs' , owner: 'vagrant', group: 'vagrant', mode: '0644' }
+
+# EOF

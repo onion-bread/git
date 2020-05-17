@@ -1,0 +1,18 @@
+[vagrant_svn]
+svnserver ansible_host=192.168.33.11
+
+[vagrant_ansible]
+controller ansible_host=192.168.33.12
+node01     ansible_host=192.168.33.21
+
+[vagrant_testvm]
+testvm     ansible_host=192.168.33.23
+
+[vagrant_vm:children]
+vagrant_svn
+vagrant_ansible
+vagrant_testvm
+
+[vagrant_vm:vars]
+ansible_user=vagrant
+#ansible_pass=hoge

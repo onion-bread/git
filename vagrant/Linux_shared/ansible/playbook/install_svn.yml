@@ -1,0 +1,15 @@
+---
+#------------------------------------------------------------------------------
+# subversionをインストールする
+#------------------------------------------------------------------------------
+- include: '{{ distribution }}/installPackage.yml'
+  with_items:
+    - subversion
+
+- name: create svn directory
+  file:
+    path=/var/svn/repos/project
+    state=directory
+    owner=root
+    group=root
+    mode=0755

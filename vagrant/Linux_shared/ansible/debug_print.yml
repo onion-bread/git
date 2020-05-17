@@ -1,0 +1,9 @@
+---
+- hosts: all
+  become: true
+  tasks:
+
+    - name: dump variables hostvars
+      debug: var=hostvars[inventory_hostname]
+
+

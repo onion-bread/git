@@ -1,0 +1,23 @@
+---
+#----------------------------------------------------------------------------
+# ロケールを設定する
+#----------------------------------------------------------------------------
+- name: create locale
+  locale_gen:
+    name: '{{ lang }}'
+
+- name: check locale
+  shell: localectl | grep LANG='{{ lang }}'
+  register: result
+  changed_when: no
+  failed_when: no
+  check_mode: no
+
+- block:
+  - name: set locale
+    shell: localectl set-locale LANG='{{ lang }}'
+
+  - name: set keymap
+    shell: localectl set-keymap '{{ keymap }}'
+
+  when: result.rc!=0

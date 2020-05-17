@@ -1,0 +1,17 @@
+---
+#----------------------------------------------------------------------------
+# パッケージを最新化する
+#----------------------------------------------------------------------------
+- name: package install(aptitude)
+  apt:
+    name:
+      - aptitude
+    state: installed
+  tags: package
+
+- name: package update
+  apt:
+    update_cache: yes
+    upgrade: full
+  tags: package
+

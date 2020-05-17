@@ -7,7 +7,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
   # 基本はCentOSでVMを作る
   # ディストリビューションを変えたいときはVM個別指定で定義すること
-  config.vm.box = "CentOS-7-x86_64-Vagrant-2020_01"
+  config.vm.box = "CentOS-7-x86_64-Vagrant-2004_01"
 
   if Vagrant.has_plugin?("vagrant-vbguest")
     # vagrant up する際に勝手にゲストOSのGuest Additionsがアップデートされて
@@ -35,6 +35,19 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       "--paravirtprovider", "kvm",
       "--cableconnected1", "on"
     ]
+  end
+
+  # ansible用に公開鍵・秘密鍵をVMに配置する
+  # 事前に/vagrant/key/makeKey.sh で鍵ファイルを生成しておくこと
+  config.vm.provision :shell do | sh |
+    sh.inline = "/vagrant/key/setKey.sh"
+  end
+
+  # ansible_localで最低限の初期設定を行う
+  config.vm.provision :ansible_local do | ansible |
+    ansible.playbook = "/vagrant/ansible/init.yml"
+    ansible.inventory_path = "/vagrant/ansible/hosts/vagrant_vm"
+    ansible.verbose = "v"
   end
 
 #  #------------------------------------
@@ -86,24 +99,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # テスト用VM
   #------------------------------------
   config.vm.define :testvm do | target |
-#    target.vm.box = "CentOS-7-x86_64-Vagrant-2020_01"
-#    target.vm.box = "debian_9.6.0_stretch64"
-     target.vm.box = "debian_10.4.0_buster"
+    target.vm.box = "CentOS-7-x86_64-Vagrant-2004_01"
+#   target.vm.box = "debian_10.4.0_buster"
 
-     target.vm.network :private_network, ip: "192.168.33.23"
-
-    # ansible用に公開鍵・秘密鍵をVMに配置する
-    target.vm.provision :shell do | sh |
-      sh.inline = "/vagrant/key/setKey.sh"
-    end
-
-    # vagrantから単体でVM生成するときはコメント解除する
+    target.vm.network :private_network, ip: "192.168.33.23"
     target.vm.hostname = "testvm"
-    target.vm.provision :ansible_local do | ansible |
-      ansible.playbook = "/vagrant/ansible/init.yml"
-      ansible.inventory_path = "/vagrant/ansible/hosts/vagrant_vm"
-      ansible.verbose = "v"
-    end
   end
 
 end
